@@ -21,11 +21,59 @@ namespace ExpenseManagement.Controller
 		[HttpGet]
 		[Route("all")]
 		[Produces(typeof(IEnumerable<User>))]
-		public async Task<OkObjectResult> All()
+		public async Task<IActionResult> GetUsers()
 		{
 			var users = await _userContext.Users.ToListAsync();
 
 			return Ok(users);
+		}
+
+		[HttpGet]
+		[Route("id")]
+		[Produces(typeof(User))]
+		public async Task<IActionResult> GetUser(int id)
+		{
+			User? user = await _userContext.Users.FindAsync(id);
+			if (user == null)
+			{
+				return NotFound();
+			}
+
+			return Ok(user);
+		}
+
+		[HttpPost]
+		[Route("add")]
+		[Produces(typeof(User))]
+		public async Task<IActionResult> AddUser(User user)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			_userContext.Users.Add(user);
+			await _userContext.SaveChangesAsync();
+
+			return Ok(user);
+		}
+
+
+		[HttpDelete]
+		[Route("del")]
+		[Produces(typeof(User))]
+		public async Task<IActionResult> DeleteUser(int id)
+		{
+			User? user = await _userContext.Users.FindAsync(id);
+			if (user == null)
+			{
+				return NotFound();
+			}
+
+			_userContext.Users.Remove(user);
+			await _userContext.SaveChangesAsync();
+
+			return Ok(user);
 		}
 	}
 }

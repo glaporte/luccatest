@@ -1,8 +1,10 @@
+using ExpenseManagement.DataModel.Context;
+using ExpenseManagement.DataModel.SeedData;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddMvcCore();
 builder.Services.AddEndpointsApiExplorer();
@@ -19,14 +21,26 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddDbContext<ExpenseContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbContext"));
+});
+builder.Services.AddDbContext<UserContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbContext"));
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    SeedData.Initialize(services);
+}
+
 if (!app.Environment.IsDevelopment())
 {
 	app.UseExceptionHandler("/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 	app.UseHsts();
 }
 

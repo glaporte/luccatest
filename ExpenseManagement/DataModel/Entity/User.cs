@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExpenseManagement.DataModel.Entity
 {
+	[Table(nameof(User))]
 	public class User
 	{
 		public const string NamingValidity = "^[a-zA-Z0-9-_ ]+$";
@@ -17,17 +18,21 @@ namespace ExpenseManagement.DataModel.Entity
 
 		[Required]
 		[RegularExpression(NamingValidity, ErrorMessage = $"Use \"valid latin naming\" convention: {NamingValidity}.")]
-		public string Surname { get; set; }
+		public string Firstname { get; set; }
 
 		public Currency PreferredCurrency { get; set; }
 
 		public ICollection<Expense> Expenses { get; }
 
-		public User(string lastName, string surname)
+		public User(string lastName, string firstName)
 		{
 			Lastname = lastName;
-			Surname = surname;
+			Firstname = firstName;
 			Expenses = Array.Empty<Expense>();
+		}
+
+		public User(): this(string.Empty, string.Empty)
+		{
 		}
 	}
 }
