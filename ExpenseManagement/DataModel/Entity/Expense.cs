@@ -1,4 +1,5 @@
 ﻿using ExpenseManagement.DataModel.Context;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -9,6 +10,9 @@ namespace ExpenseManagement.DataModel.Entity
 
 	public class Expense : IValidatableObject
 	{
+		private User? _user;
+		private ILazyLoader? LazyLoader { get; set; }
+
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
@@ -18,7 +22,11 @@ namespace ExpenseManagement.DataModel.Entity
 		public int UserId { get; set; }
 
 		[JsonIgnore]
-		public User? User { get; set; }
+		public User? User
+		{
+			get => LazyLoader.Load(this, ref _user)!;
+			set => _user = value;
+		}
 
 		[DataType(DataType.DateTime)]
 		[DisplayFormat(DataFormatString = "{yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
@@ -34,6 +42,8 @@ namespace ExpenseManagement.DataModel.Entity
 		[Required]
 		public string? Annotation { get; set; }
 
+		public string Username => $"{User?.Firstname} {User?.Lastname}";
+
 		public Expense(User user, string annotation)
 		{
 			User = user;
@@ -41,8 +51,13 @@ namespace ExpenseManagement.DataModel.Entity
 		}
 
 		public Expense()
+		{ }
+
+		private Expense(ILazyLoader lazyLoader)
 		{
+			LazyLoader = lazyLoader;
 		}
+
 
 		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 		{

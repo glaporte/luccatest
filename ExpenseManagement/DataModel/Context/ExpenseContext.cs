@@ -29,6 +29,7 @@ namespace ExpenseManagement.DataModel.Context
 		public async Task<List<Expense>> Select(Expression<Func<Expense, bool>>? filter = null, GetRequestFilter? orderBy = null)
 		{
 			var result = Expenses.AsQueryable();
+
 			if (filter != null)
 			{
 				result = result.Where(filter);

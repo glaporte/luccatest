@@ -1,11 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ExpenseManagement.DataModel.Entity
 {
 	[Table(nameof(User))]
 	public class User
 	{
+		private ILazyLoader? LazyLoader { get; set; }
+		private ICollection<Expense>? _expenses;
+
 		public const string NamingValidity = "^[a-zA-Z0-9-_ ]+$";
 
 		[Key]
@@ -22,7 +27,12 @@ namespace ExpenseManagement.DataModel.Entity
 
 		public Currency PreferredCurrency { get; set; }
 
-		public ICollection<Expense> Expenses { get; } = new List<Expense>();
+		[JsonIgnore]
+		public ICollection<Expense> Expenses
+		{
+			get => LazyLoader.Load(this, ref _expenses)!;
+			set => _expenses = value;
+		}
 
 		public User(string lastName, string firstName)
 		{
@@ -30,8 +40,13 @@ namespace ExpenseManagement.DataModel.Entity
 			Firstname = firstName;
 		}
 
-		public User(): this(string.Empty, string.Empty)
+		public User() : this(string.Empty, string.Empty)
 		{
+		}
+
+		private User(ILazyLoader lazyLoader) : this()
+		{
+			LazyLoader = lazyLoader;
 		}
 	}
 }
