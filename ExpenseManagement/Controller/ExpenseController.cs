@@ -18,7 +18,7 @@ namespace ExpenseManagement.Controller
 			[JsonConverter(typeof(JsonStringEnumConverter))]
 			public enum Sort
 			{
-				[EnumMember(Value = "none")]
+				[EnumMember(Value = "None")]
 				None,
 				[EnumMember(Value = "Asc")]
 				Ascending,

@@ -28,7 +28,7 @@ namespace ExpenseManagement.DataModel.Entity
 		public Currency PreferredCurrency { get; set; }
 
 		[JsonIgnore]
-		public ICollection<Expense> Expenses
+		public ICollection<Expense>? Expenses
 		{
 			get => LazyLoader.Load(this, ref _expenses)!;
 			set => _expenses = value;
