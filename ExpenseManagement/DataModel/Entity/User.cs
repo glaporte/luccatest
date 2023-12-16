@@ -22,13 +22,12 @@ namespace ExpenseManagement.DataModel.Entity
 
 		public Currency PreferredCurrency { get; set; }
 
-		public ICollection<Expense> Expenses { get; }
+		public ICollection<Expense> Expenses { get; } = new List<Expense>();
 
 		public User(string lastName, string firstName)
 		{
 			Lastname = lastName;
 			Firstname = firstName;
-			Expenses = Array.Empty<Expense>();
 		}
 
 		public User(): this(string.Empty, string.Empty)

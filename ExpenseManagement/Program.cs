@@ -6,7 +6,11 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
-builder.Services.AddMvcCore();
+builder.Services.AddMvcCore().AddJsonOptions(jsonOptions =>
+{
+    jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
+});
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddControllers();

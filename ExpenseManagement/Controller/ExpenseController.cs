@@ -1,9 +1,6 @@
 ﻿using ExpenseManagement.DataModel.Context;
 using ExpenseManagement.DataModel.Entity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
-using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using HttpGetAttribute = Microsoft.AspNetCore.Mvc.HttpGetAttribute;
@@ -70,7 +67,7 @@ namespace ExpenseManagement.Controller
 		[Produces(typeof(IEnumerable<Expense>))]
 		public async Task<IActionResult> GetExpenseForUser(int userId, [FromQuery] GetRequestFilter getFilter)
 		{
-			if (_userContext.Users.Count(u => u.Id == userId) == 0)
+			if (!_userContext.UserExist(userId))
 			{
 				return BadRequest();
 			}
@@ -94,7 +91,6 @@ namespace ExpenseManagement.Controller
 
 			return Ok(expense);
 		}
-
 
 		[HttpDelete]
 		[Route("del")]

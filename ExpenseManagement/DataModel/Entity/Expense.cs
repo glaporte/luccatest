@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ExpenseManagement.DataModel.Context;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ExpenseManagement.DataModel.Entity
 {
-
 	[Table(nameof(Expense))]
 
 	public class Expense : IValidatableObject
@@ -12,13 +13,15 @@ namespace ExpenseManagement.DataModel.Entity
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 
+		[Required]
+		[ForeignKey("User")]
 		public int UserId { get; set; }
 
-		[Required]
+		[JsonIgnore]
 		public User? User { get; set; }
 
-		[DataType(DataType.Date)]
-		[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
+		[DataType(DataType.DateTime)]
+		[DisplayFormat(DataFormatString = "{yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
 		public DateTime Date { get; set; }
 
 		public ExpenseType ExpenseType { get; set; }
@@ -43,9 +46,16 @@ namespace ExpenseManagement.DataModel.Entity
 
 		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 		{
+			var user = validationContext.GetRequiredService<UserContext>();
+			
+			if (!user.UserExist(UserId))
+			{
+				yield return new ValidationResult($"Expense user '{UserId}' does not exist.", new[] { nameof(UserId) });
+			}
+
 			if (Date > DateTime.Now)
 			{
-				yield return new ValidationResult($"Expense date cannot be int the future '{Date}' > '{DateTime.Now}'.", new[] { nameof(Date) });
+				yield return new ValidationResult($"Expense date cannot be in the future '{Date}' > '{DateTime.Now}'.", new[] { nameof(Date) });
 			}
 
 			if (Date < DateTime.Now.AddMonths(-3))

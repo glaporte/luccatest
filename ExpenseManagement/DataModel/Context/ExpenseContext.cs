@@ -16,6 +16,13 @@ namespace ExpenseManagement.DataModel.Context
 		{
 			modelBuilder.Entity<Expense>().ToTable(nameof(Expense));
 			modelBuilder.Entity<Expense>().HasIndex(e => new { e.UserId, e.Date, e.Amount }).IsUnique();
+
+			modelBuilder.Entity<Expense>()
+			  .HasOne(e => e.User)
+			  .WithMany(e => e.Expenses)
+			  .HasForeignKey(e => e.UserId)
+			  .IsRequired();
+
 			base.OnModelCreating(modelBuilder);
 		}
 
