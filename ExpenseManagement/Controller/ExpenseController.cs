@@ -2,6 +2,10 @@
 using ExpenseManagement.DataModel.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using System.ComponentModel;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using HttpGetAttribute = Microsoft.AspNetCore.Mvc.HttpGetAttribute;
 using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
@@ -11,19 +15,38 @@ namespace ExpenseManagement.Controller
 	[ApiController]
 	public class ExpenseController : ControllerBase
 	{
-		private readonly ExpenseContext _expenseContext;
-
-		public ExpenseController(ExpenseContext context)
+		[BindProperties]
+		public class GetRequestFilter
 		{
-			_expenseContext = context ?? throw new ArgumentNullException(nameof(context));
+			[JsonConverter(typeof(JsonStringEnumConverter))]
+			public enum Sort
+			{
+				[EnumMember(Value = "none")]
+				None,
+				[EnumMember(Value = "Asc")]
+				Ascending,
+				[EnumMember(Value = "Desc")]
+				Descending
+			}
+			public Sort SortByDate { get; set; } = Sort.None;
+			public Sort SortByAmount { get; set; } = Sort.None;
+		}
+
+		private readonly ExpenseContext _expenseContext;
+		private readonly UserContext _userContext;
+
+		public ExpenseController(ExpenseContext expenseContext, UserContext userContext)
+		{
+			_expenseContext = expenseContext ?? throw new ArgumentNullException(nameof(expenseContext));
+			_userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
 		}
 
 		[HttpGet]
 		[Route("all")]
 		[Produces(typeof(IEnumerable<Expense>))]
-		public async Task<IActionResult> GetExpenses()
+		public async Task<IActionResult> GetExpenses([FromQuery] GetRequestFilter getFilter)
 		{
-			var expenses = await _expenseContext.Expenses.ToListAsync();
+			var expenses = await _expenseContext.Select(null, getFilter);
 
 			return Ok(expenses);
 		}
@@ -45,9 +68,14 @@ namespace ExpenseManagement.Controller
 		[HttpGet]
 		[Route("user")]
 		[Produces(typeof(IEnumerable<Expense>))]
-		public async Task<IActionResult> GetExpenseForUser(int userId)
+		public async Task<IActionResult> GetExpenseForUser(int userId, [FromQuery] GetRequestFilter getFilter)
 		{
-			var expenses = await _expenseContext.Select(x => x.UserId == userId);
+			if (_userContext.Users.Count(u => u.Id == userId) == 0)
+			{
+				return BadRequest();
+			}
+
+			var expenses = await _expenseContext.Select(x => x.UserId == userId, getFilter);
 			return Ok(expenses);
 		}
 

@@ -1,6 +1,7 @@
 ﻿using ExpenseManagement.DataModel.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using static ExpenseManagement.Controller.ExpenseController;
 
 namespace ExpenseManagement.DataModel.Context
 {
@@ -18,17 +19,34 @@ namespace ExpenseManagement.DataModel.Context
 			base.OnModelCreating(modelBuilder);
 		}
 
-		public async Task<List<Expense>> Select(Expression<Func<Expense, bool>> filter)
+		public async Task<List<Expense>> Select(Expression<Func<Expense, bool>>? filter = null, GetRequestFilter? orderBy = null)
 		{
 			var result = Expenses.AsQueryable();
-			result = result.Where(filter);
-			return await result.ToListAsync();
-		}
+			if (filter != null)
+			{
+				result = result.Where(filter);
+			}
+			if (orderBy != null)
+			{
+				if (orderBy.SortByAmount == GetRequestFilter.Sort.Ascending)
+				{
+					result = result.OrderBy(e => e.Amount);
+				}
+				else if (orderBy.SortByAmount == GetRequestFilter.Sort.Descending)
+				{
+					result = result.OrderByDescending(e => e.Amount);
+				}
 
-		public async Task<List<Expense>> Filter(Expression<Func<Expense, bool>> filter)
-		{
-			var result = Expenses.AsQueryable();
-			result = result.OrderBy(filter);
+				if (orderBy.SortByDate == GetRequestFilter.Sort.Ascending)
+				{
+					result = result.OrderBy(e => e.Date);
+				}
+				else if (orderBy.SortByDate == GetRequestFilter.Sort.Descending)
+				{
+					result = result.OrderByDescending(e => e.Date);
+				}
+			}
+
 			return await result.ToListAsync();
 		}
 	}
