@@ -1,3 +1,9 @@
 ExpenseManagement/ExpenseManagement/bin/
 ExpenseManagement/ExpenseManagement/.vs/
 ExpenseManagement/ExpenseManagement/obj/
+
+ExpenseManagement/ExpenseManagement.UnitTest/bin/
+ExpenseManagement/ExpenseManagement.UnitTest/.vs/
+ExpenseManagement/ExpenseManagement.UnitTest/obj/
+
+ExpenseManagement/.vs/*

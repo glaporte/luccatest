@@ -58,7 +58,6 @@ namespace ExpenseManagement.DataModel.Entity
 			LazyLoader = lazyLoader;
 		}
 
-
 		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 		{
 			var user = validationContext.GetRequiredService<UserContext>();

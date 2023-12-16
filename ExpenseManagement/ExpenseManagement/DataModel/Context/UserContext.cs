@@ -5,11 +5,14 @@ namespace ExpenseManagement.DataModel.Context
 {
 	public class UserContext : DbContext
 	{
-		public DbSet<User> Users => Set<User>();
+		virtual public DbSet<User> Users => Set<User>();
 
 		public UserContext(DbContextOptions<UserContext> options) : base(options)
 		{
 		}
+
+		public UserContext()
+		{ }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
