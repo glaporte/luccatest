@@ -33,7 +33,7 @@ namespace ExpenseManagement.UnitTest
 			await AddUsers(db);
 			await AddExpenses(db);
 
-			ExpenseController expenseController = new ExpenseController(db.ExpenseContext, db.UserContext);
+			ExpenseController expenseController = new(db.ExpenseContext, db.UserContext);
 
 			//Act
 			var getExpenseResult = await expenseController.GetExpenses(new ExpenseController.GetRequestFilter());
@@ -51,46 +51,44 @@ namespace ExpenseManagement.UnitTest
 		[MemberData(nameof(SortByDate))]
 		public async Task GetExpenses_ReturnsValidExpenses_WithRequestFiltering(ExpenseController.GetRequestFilter filter)
 		{
-			using (var db = new TestDbContext())
+			using var db = new TestDbContext();
+			// Arrange
+			await AddUsers(db);
+			await AddExpenses(db);
+
+			ExpenseController expenseController = new(db.ExpenseContext, db.UserContext);
+
+			//Act
+			var getExpenseResult = await expenseController.GetExpenses(filter);
+
+			//Assert
+			Assert.NotNull(getExpenseResult);
+			Assert.IsType<OkObjectResult>(getExpenseResult);
+			Assert.IsType<List<Expense>>((List<Expense>)((OkObjectResult)getExpenseResult!).Value!);
+			List<Expense> result = (List<Expense>)((OkObjectResult)getExpenseResult!).Value!;
+			Assert.Equal(9, result.Count);
+
+			List<Expense> copy = new(result);
+
+			if (filter.SortByAmount == ExpenseController.GetRequestFilter.Sort.Ascending)
 			{
-				// Arrange
-				await AddUsers(db);
-				await AddExpenses(db);
-
-				ExpenseController expenseController = new ExpenseController(db.ExpenseContext, db.UserContext);
-
-				//Act
-				var getExpenseResult = await expenseController.GetExpenses(filter);
-
-				//Assert
-				Assert.NotNull(getExpenseResult);
-				Assert.IsType<OkObjectResult>(getExpenseResult);
-				Assert.IsType<List<Expense>>((List<Expense>)((OkObjectResult)getExpenseResult!).Value!);
-				List<Expense> result = (List<Expense>)((OkObjectResult)getExpenseResult!).Value!;
-				Assert.Equal(9, result.Count);
-
-				List<Expense> copy = new List<Expense>(result);
-
-				if (filter.SortByAmount == ExpenseController.GetRequestFilter.Sort.Ascending)
-				{
-					copy = result.OrderBy(e => e.Amount).ToList();
-				}
-				else if (filter.SortByAmount == ExpenseController.GetRequestFilter.Sort.Descending)
-				{
-					copy = result.OrderByDescending(e => e.Amount).ToList();
-				}
-
-				if (filter.SortByDate == ExpenseController.GetRequestFilter.Sort.Ascending)
-				{
-					copy = result.OrderBy(e => e.Date).ToList();
-				}
-				else if (filter.SortByDate == ExpenseController.GetRequestFilter.Sort.Descending)
-				{
-					copy = result.OrderByDescending(e => e.Date).ToList();
-				}
-
-				Assert.Equal(copy, result);
+				copy = result.OrderBy(e => e.Amount).ToList();
 			}
+			else if (filter.SortByAmount == ExpenseController.GetRequestFilter.Sort.Descending)
+			{
+				copy = result.OrderByDescending(e => e.Amount).ToList();
+			}
+
+			if (filter.SortByDate == ExpenseController.GetRequestFilter.Sort.Ascending)
+			{
+				copy = result.OrderBy(e => e.Date).ToList();
+			}
+			else if (filter.SortByDate == ExpenseController.GetRequestFilter.Sort.Descending)
+			{
+				copy = result.OrderByDescending(e => e.Date).ToList();
+			}
+
+			Assert.Equal(copy, result);
 		}
 
 		// TODO add Combinatorial test system
@@ -103,7 +101,7 @@ namespace ExpenseManagement.UnitTest
 			await AddUsers(db);
 			await AddExpenses(db);
 
-			ExpenseController expenseController = new ExpenseController(db.ExpenseContext, db.UserContext);
+			ExpenseController expenseController = new(db.ExpenseContext, db.UserContext);
 
 			//Act
 			// TODO replace by Combinatorial test data
@@ -131,7 +129,7 @@ namespace ExpenseManagement.UnitTest
 			await AddUsers(db);
 			await AddExpenses(db);
 
-			ExpenseController expenseController = new ExpenseController(db.ExpenseContext, db.UserContext);
+			ExpenseController expenseController = new(db.ExpenseContext, db.UserContext);
 
 			//Act
 			var getExpenseResult = await expenseController.GetExpenseForUser(4648, new ExpenseController.GetRequestFilter() { SortByAmount = ExpenseController.GetRequestFilter.Sort.Descending });
@@ -154,14 +152,14 @@ namespace ExpenseManagement.UnitTest
 		}
 
 
-		private async Task AddUsers(TestDbContext db)
+		private static async Task AddUsers(TestDbContext db)
 		{
 			await UserHelper.AddUser(db, "jean", "de la fontaine", DataModel.Currency.EUR);
 			await UserHelper.AddUser(db, "ernest", "Hemingway", DataModel.Currency.USD);
 			await UserHelper.AddUser(db, "fyodor", "dostoevsky", DataModel.Currency.RUB);
 		}
 
-		private async Task AddExpenses(TestDbContext db)
+		private static async Task AddExpenses(TestDbContext db)
 		{
 			await ExpenseHelper.AddExpense(db, 1, DateTime.Now.AddDays(-2), DataModel.ExpenseType.Restaurant, 30, DataModel.Currency.EUR, "professional");
 			await ExpenseHelper.AddExpense(db, 2, DateTime.Now.AddDays(-2), DataModel.ExpenseType.Misc, 80, DataModel.Currency.USD, "good");
