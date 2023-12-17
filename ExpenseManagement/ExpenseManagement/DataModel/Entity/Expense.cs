@@ -60,11 +60,19 @@ namespace ExpenseManagement.DataModel.Entity
 
 		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 		{
-			var user = validationContext.GetRequiredService<UserContext>();
-			
-			if (!user.UserExist(UserId))
+			var userContext = validationContext.GetRequiredService<UserContext>();
+			var expenseContext = validationContext.GetRequiredService<ExpenseContext>();
+			if (!userContext.UserExist(UserId))
 			{
-				yield return new ValidationResult($"Expense user '{UserId}' does not exist.", new[] { nameof(UserId) });
+				yield return new ValidationResult($"Expense user does not exist '{UserId}'.", new[] { nameof(UserId) });
+			}
+			else
+			{
+				User selectedUser = userContext.Users.Single(u => u.Id == UserId);
+				if (selectedUser.PreferredCurrency != Currency)
+				{
+					yield return new ValidationResult($"Expense currency must be the same as User currency '{Currency}' != '{selectedUser.PreferredCurrency}'.", new[] { nameof(Currency) });
+				}
 			}
 
 			if (Date > DateTime.Now)
@@ -77,9 +85,10 @@ namespace ExpenseManagement.DataModel.Entity
 				yield return new ValidationResult($"Expense date cannot be more than 3 months old '{Date}'.", new[] { nameof(Date) });
 			}
 
-			if (User != null && User.PreferredCurrency != Currency)
+			int exist = expenseContext.Expenses.Where(e => e.Amount == Amount && e.UserId == UserId && e.Date == Date).Count();
+			if (exist == 1)
 			{
-				yield return new ValidationResult($"Expense currency must be the same as User currency '{Currency}' != '{User.PreferredCurrency}'.", new[] { nameof(Currency) });
+				yield return new ValidationResult($"Expense with same amount and date already exist for user {UserId}.", new[] { nameof(Date), nameof(Amount), nameof(UserId) });
 			}
 		}
 	}

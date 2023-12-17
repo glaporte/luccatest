@@ -12,7 +12,7 @@ namespace ExpenseManagement.Controller
 	public class UserController : ControllerBase
 	{
 		private readonly UserContext _userContext;
-
+		
 		public UserController(UserContext context)
 		{
 			_userContext = context ?? throw new ArgumentNullException(nameof(context));
